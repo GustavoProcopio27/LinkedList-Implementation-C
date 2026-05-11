@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+// O head é o Primeiro elemento da lista
+
 LinkedList* _linkedlist_init(size_t element_size)
 {
     LinkedList *ptr = (LinkedList *)malloc(sizeof(LinkedList));
@@ -24,7 +26,7 @@ void _linkedlist_addFirst(LinkedList *linked_list, void *value)
 
     Node *current = linked_list->head;
 
-    while (current != NULL) // percorre tudo aumentando o index
+    while (current != NULL) // percorre tudo aumentando o index de cada um, como se tivesse movendo todos um para frente
     {
         current->index += 1;
         current = current->next;
@@ -36,17 +38,23 @@ void _linkedlist_addFirst(LinkedList *linked_list, void *value)
     new_node->value = malloc(linked_list->element_size);
     memcpy(new_node->value, value, linked_list->element_size);
     new_node->index=0;
-    new_node->next = linked_list->head;
 
+    // Aponto para o primeiro elemento anterior
+    new_node->next = linked_list->head;
+    // Digo que meu primeiro é o criado agora
     linked_list->head = new_node;
     linked_list->length += 1;
 }
 
+
+
 void _linkedlist_addLast(LinkedList *linked_list, void *value)
 {
     if (linked_list == NULL) exit(1);
-    Node* current = linked_list->head;
-    Node* prev = NULL;
+    Node* current = linked_list->head; // Inicia no primeiro elemento
+    Node* prev = NULL; //usado para armazenar o elemento anterior 
+
+    //Percorre até o fim da lista, prev->fim e fim=NULL
     while (current != NULL)
     {
         prev = current;
@@ -56,18 +64,21 @@ void _linkedlist_addLast(LinkedList *linked_list, void *value)
 
     Node *new_node = malloc(sizeof(Node));
     if (new_node == NULL) exit(1);
-
     new_node->index = linked_list->length;
     new_node->value = malloc(linked_list->element_size);
-    new_node->next = current;
-
-
-
+    new_node->next = current; // APonto para o fim NULL
     memcpy(new_node->value, value, linked_list->element_size);
-    if(prev==NULL) 
+
+    if(prev==NULL)  //se prev==NULL, estamos adicionando no primeiro elemento da lista e ela nao tem outros elementos 
+    {
+        new_node->next=NULL;
         linked_list->head = new_node;
+    }
     else
-        prev->next = new_node;
+    {
+        prev->next = new_node;  // prev aponta para o meu novo elemento com valor no final, assim:
+                                // PREV->NEW  NEW->NULL, onde NEW é o ultimo elemento
+    }
 
     linked_list->length+=1;
     
@@ -80,7 +91,7 @@ void _linkedlist_addAtIndex(LinkedList* linked_list, void *value, size_t index)
     Node *current = linked_list->head;
     Node *prev = NULL;
     bool new_node_was_added = false;
-    if (index == 0)
+    if (index == 0) //se o index for zero, adiciona no primeiro elemento
     {
         _linkedlist_addFirst(linked_list, value);
         return;
@@ -88,40 +99,47 @@ void _linkedlist_addAtIndex(LinkedList* linked_list, void *value, size_t index)
 
     while (current != NULL)
     {
-        if (current->index == index)
+        if (current->index == index) // percorre até achar onde deve adicionar
         {
             Node* new_node = malloc(sizeof(Node));
             new_node->index=index;
             new_node->value=malloc(linked_list->element_size);
-            memcpy(new_node->value,value,linked_list->element_size);
-            new_node->next=current;
+            memcpy(new_node->value,value,linked_list->element_size); // cria o no novo
 
-
-            prev->next=new_node;
+            new_node->next=current; // o no adicionado aponta para o elemento no index que foi passado 
+            prev->next=new_node;    // e o anterior começa a apontar para o no adicionado
+                
+            linked_list->length+=1;
 
             new_node_was_added=true;
         }
-        if(current->index>index){
+        if(current->index>index){ // aumenta o indice dos proximos elementos
             current->index+=1;
         }
 
-        current = current->next;
         prev=current;
+        current = current->next;
+
     }
 
     // aqui current é NULL e logo o ultimo elemento
 
     if(!new_node_was_added){
-        current->value = malloc(linked_list->element_size);
-        if (current->value == NULL) exit(1);
+        Node *new_node = malloc(sizeof(Node));
+        if (new_node == NULL) exit(1);
 
-        memcpy(current->value, value, linked_list->element_size);
+        new_node->value = malloc(linked_list->element_size);
+        if (new_node->value == NULL) exit(1);
 
-        current->next = NULL;
+        memcpy(new_node->value, value, linked_list->element_size);
 
-        current->index = linked_list->length;
+        prev->next = new_node; // o elemento final anterior começa a apontar para o no adicionado
+        new_node->next=NULL;   // o no adicionado aponta para nada
+        new_node->index = linked_list->length;
+
+        linked_list->length+=1;
+
     }
-    linked_list->length+=1;
 
 }
 
